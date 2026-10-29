@@ -1,6 +1,6 @@
 import os
 import threading
-
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 import pandas as pd
 
@@ -13,7 +13,6 @@ from src.clustering import evaluate_clusters, pick_best, prepare_features
 from src.optimization import optimize_mamdani
 from src import visualization as viz
 from src.gui import RiskApp
-
 
 def run_background_calculations():
     print("Запуск фоновых расчетов")
@@ -43,14 +42,12 @@ def run_background_calculations():
     cmp_df = pd.DataFrame(rows)
     cmp_df["diff"] = (cmp_df["Mamdani"] - cmp_df["Sugeno"]).abs()
     cmp_df.to_csv("reports/mamdani_vs_sugeno.csv", index=False)
-
     cluster_results = evaluate_clusters(df, c_range=range(2, 7))
     best = pick_best(cluster_results)
     print(f"\nЛучшее число кластеров: {best['n_clusters']}, FPC={best['fpc']:.3f}")
 
     X_scaled, scaler = prepare_features(df)
     labels = np.argmax(best["membership"], axis=0)
-
     train = df.sample(frac=0.7, random_state=42)
     val = df.drop(train.index)
     opt = optimize_mamdani(train, val, n_iter=20)
@@ -67,14 +64,12 @@ def run_background_calculations():
 
     print("\n Фоновые расчеты и графики успешно завершены!")
 
-
 def main():
     bg_thread = threading.Thread(target=run_background_calculations, daemon=True)
     bg_thread.start()
     print("Открытие приложения...")
     app = RiskApp()
     app.mainloop()
-
 
 if __name__ == "__main__":
     main()
